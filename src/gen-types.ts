@@ -1,6 +1,6 @@
-import { TypeTemplate } from "./type-template"
-import prettier = require("prettier")
-import lo = require("lodash")
+import { TypeTemplate } from "./type-template";
+import prettier = require("prettier");
+import lo = require("lodash");
 
 type SwaggerDoc = SwaggerIo.V2.SchemaJson
 type SwaggerType = SwaggerIo.V2.SchemaJson.Definitions.Schema
@@ -16,33 +16,33 @@ export async function genTypes(
   lookupPaths: string[],
   opts: genTypesOpts = {}
 ) {
-  const mapVariableName = opts.mapVariableName || (s => s)
-  lookupPaths = lo.uniq(lookupPaths)
+  const mapVariableName = opts.mapVariableName || (s => s);
+  lookupPaths = lo.uniq(lookupPaths);
 
-  let external = opts.external ? "export " : ""
-  let list: { name; def; srcPath }[] = []
+  let external = opts.external ? "export " : "";
+  let list: { name; def; srcPath }[] = [];
 
   for (let _path of lookupPaths) {
-    const split = _path.split(/\//g).filter(x => x !== "#")
+    const split = _path.split(/\//g).filter(x => x !== "#");
     lookupPath(swaggerDoc, split, list)
   }
-  list = lo.uniqBy(list, x => x.srcPath)
+  list = lo.uniqBy(list, x => x.srcPath);
   list.sort((i1, i2) => {
-    if (i1.name == i2.name) return 0
+    if (i1.name == i2.name) return 0;
     return i2.name - i1.name
-  })
+  });
 
-  const typeTemplateGen = new TypeTemplate(opts, "definitions", swaggerDoc)
+  const typeTemplateGen = new TypeTemplate(opts, "definitions", swaggerDoc);
 
-  let out = ""
+  let out = "";
   list.forEach(item => {
-    let def: SwaggerType = item.def
+    let def: SwaggerType = item.def;
 
-    let templ = typeTemplateGen.typeTemplate(def, item.name, true)
-    let isInterface = ["object", "allOf", "anyOf"].indexOf(templ.type) !== -1
-    let keyword = isInterface ? "interface" : "type"
-    let equals = isInterface ? "" : " = "
-    let extend = ""
+    let templ = typeTemplateGen.typeTemplate(def, item.name, true);
+    let isInterface = ["object", "allOf", "anyOf"].indexOf(templ.type) !== -1;
+    let keyword = isInterface ? "interface" : "type";
+    let equals = isInterface ? "" : " = ";
+    let extend = "";
     if (isInterface && (templ.extends || []).length) {
       extend = "extends" + " " + (templ.extends || []).join(",")
     }
@@ -51,27 +51,27 @@ export async function genTypes(
       `${templ.data.join("\n")}`,
       ""
     ].join("\n")
-  })
+  });
 
-  let result = prettier.format(out, opts.prettierOpts || defaultPrettierOpts)
+  let result = prettier.format(out, opts.prettierOpts || defaultPrettierOpts);
   return result
 }
 
-export const fixVariableName = (s: string) => s.replace(/^[^a-zA-Z_$]|[^\w$]/g, "_")
+export const fixVariableName = (s: string) => s.replace(/^[^a-zA-Z_$]|[^\w$]/g, "_");
 export const defaultPrettierOpts: prettier.Options = {
   semi: false,
   printWidth: 100,
   parser: "typescript" as "typescript"
-}
+};
 
 function lookupPath(doc: any, path: string[], list = [] as { name; def; srcPath }[]) {
-  const found = lo.get(doc, path) as any
-  if (typeof found !== "object") return
+  const found = lo.get(doc, path) as any;
+  if (typeof found !== "object") return;
   if (found?.type || found?.allOf || found?.$ref || found?.anyOf) {
     list.push({ name: path[path.length - 1], def: found, srcPath: path.join(".") })
   } else {
     Object.keys(found).forEach(key => {
-      const toSearch = [...path, key]
+      const toSearch = [...path, key];
       lookupPath(doc, toSearch, list)
     })
   }

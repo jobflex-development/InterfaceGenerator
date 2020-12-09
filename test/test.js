@@ -1,13 +1,11 @@
-const tap = require("tap")
-const tstemplate = require("../built/main")
-const jobflex = require("./jobflex.json")
-const path = require("path")
+const tap = require("tap");
+const path = require("path");
+const typeGenerator = require("../built/gen-paths");
+const json = require("./jobflex.json");
 
 async function run() {
-
-
   await tap.test("jobflex", async t => {
-    await tstemplate.genPaths(jobflex, {
+    await typeGenerator.genPaths(json, {
       output: path.resolve(__dirname, "type"),
       typesOpts: {
         hideComments: true
@@ -17,4 +15,4 @@ async function run() {
   })
 }
 
-run()
+run();
