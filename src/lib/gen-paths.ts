@@ -1,7 +1,6 @@
 import fs = require("fs");
 import {genTypes, genTypesOpts, defaultPrettierOpts, fixVariableName} from "./gen-types";
 import mkdirp = require("mkdirp");
-import rimraf = require("rimraf");
 import path = require("path");
 import {promisify} from "util";
 import {TypeTemplate} from "./type-template";
@@ -58,7 +57,6 @@ export class GenPathsClass {
 
     async run() {
         const {swaggerDoc, opts} = this;
-        await promisify(rimraf)(opts.output);
         await promisify(mkdirp as any)(path.resolve(opts.output, ""));
 
         const typesFile = await genTypes(swaggerDoc, [...this.lookupPaths, ...this.typegen.foundRefs], {
